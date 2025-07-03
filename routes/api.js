@@ -132,17 +132,19 @@ router.post('/apply-signatures', upload.single('pdfFile'), async (req, res) => {
     const signaturesArray = JSON.parse(signatures);
     console.log('Parsed signatures array:', signaturesArray);
     console.log('Number of signatures to apply:', signaturesArray.length);
+    console.log('Initial PDF size:', pdfBytes.length, 'bytes');
 
     if (signaturesArray.length === 0) {
       console.error('No signatures in array');
-      return res.status(400).json({ msg: 'No signatures provided' });
+      return res.status(400).json({ msg: 'No signatures provided. Please add at least one signature before downloading.' });
     }
 
     // Apply each signature to the PDF
     for (let i = 0; i < signaturesArray.length; i++) {
       const signature = signaturesArray[i];
       console.log(`Applying signature ${i + 1}:`, signature);
-      
+      console.log('Signature coordinates:', { x: signature.x, y: signature.y, pageNumber: signature.pageNumber });
+      console.log('PDF size before applying signature:', pdfBytes.length, 'bytes');
       try {
         if (signature.type === 'image') {
           console.log('Processing image signature...');
@@ -155,6 +157,7 @@ router.post('/apply-signatures', upload.single('pdfFile'), async (req, res) => {
         } else {
           console.warn(`Unknown signature type: ${signature.type}`);
         }
+        console.log('PDF size after applying signature:', pdfBytes.length, 'bytes');
       } catch (signatureError) {
         console.error(`Error applying signature ${i + 1}:`, signatureError);
         throw new Error(`Failed to apply signature ${i + 1}: ${signatureError.message}`);
